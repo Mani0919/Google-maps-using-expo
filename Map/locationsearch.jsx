@@ -5,8 +5,14 @@ import {
   StyleSheet,
   Dimensions,
   ActivityIndicator,
+  Text,
 } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, {
+  Callout,
+  Circle,
+  Marker,
+  PROVIDER_GOOGLE,
+} from "react-native-maps";
 import * as Location from "expo-location";
 
 const MapSearch = () => {
@@ -31,7 +37,7 @@ const MapSearch = () => {
         } else {
           // Get current location
           const location = await Location.getCurrentPositionAsync({});
-          console.log(location)
+          // console.log(location);
           setRegion({
             latitude: location.coords.latitude,
             longitude: location.coords.longitude,
@@ -65,23 +71,49 @@ const MapSearch = () => {
 
   return (
     <View className="relative">
-        <MapView
-          ref={mapRef}
-          style={styles.map}
-          initialRegion={region}
-          region={region}
-          // onRegionChange={(e)=>console.log(e)}
-          onRegionChangeComplete={(e)=>{
-            setRegion({
-              latitude: e.latitude,
-              longitude:e.longitude,
-              latitudeDelta: e.latitudeDelta,
-              longitudeDelta: e.longitudeDelta,
-            });
-          }}
-        >
-          <Marker coordinate={region} />
-        </MapView>
+      <MapView
+        mapType="hybrid" //map tyes 
+        followsUserLocation
+        showsUserLocation
+        ref={mapRef}
+        style={styles.map}
+        initialRegion={region}
+        region={region}
+        onRegionChangeComplete={(e) => {
+          setRegion({
+            latitude: e.latitude,
+            longitude: e.longitude,
+            latitudeDelta: e.latitudeDelta,
+            longitudeDelta: e.longitudeDelta,
+          });
+        }}
+        // onDoublePress={(e)=>console.log(e)}
+        // onTouchEnd={(e)=>console.log("touch",e)}
+        onPoiClick={(event) => {
+          console.log("Point of Interest Clicked:", event.nativeEvent);
+          setRegion({
+            latitude: event.nativeEvent.coordinate.latitude,
+            longitude: event.nativeEvent.coordinate.longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          });
+        }}
+      >
+        <Marker coordinate={region}>
+          <Callout>
+            <View style={{ padding: 10 }}>
+              <Text>Latitude: {region.latitude}</Text>
+              <Text>Longitude: {region.longitude}</Text>
+            </View>
+          </Callout>
+        </Marker>
+        <Circle
+          center={{ latitude: region.latitude, longitude: region.longitude }}
+          strokeColor="pink"
+          radius={100}
+          fillColor="rgba(255,192,203,0.4)"
+        />
+      </MapView>
     </View>
   );
 };
@@ -91,8 +123,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   map: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
 });
 
